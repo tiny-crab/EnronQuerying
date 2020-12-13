@@ -2,14 +2,11 @@ import os
 import json
 
 
-def flat_map(xs): return [y for ys in xs for y in ys]
-
-
 def splitter(search_dir, out_dir):
     tokens = {}
 
     for dirpath, dirnames, files in os.walk(search_dir):
-        print(f'Working on directory: {dirpath}')
+        print(f'Splitting directory: {dirpath}')
         for filename in files:
             name = os.path.join(dirpath, filename)
             with open(name, 'r') as file:
@@ -20,7 +17,7 @@ def splitter(search_dir, out_dir):
         if tokens:
             # TODO improve -2 access? it's magic
             output_dir = os.path.join(out_dir, os.path.split(dirpath)[-2])
-            print(f'Outputting to directory: {output_dir}')
+            print(f'Outputting tokens to directory: {output_dir}')
             if not os.path.exists(output_dir):
                 os.makedirs(output_dir)
             output_file = os.path.join(output_dir, "tokens.txt")
