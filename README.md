@@ -25,7 +25,11 @@ Client optimizations (highest priority)
 * Trie caching
   * perhaps the user makes a mistake and types "cst" instead of "cat". Caching the "c" trie would enable fast sorting without having to make a trie reload
 * balance trie caching with memory usage
-  * I want to run some comparison tests for how much memory this uses on the full dataset. I could further split the tries by second or third char, instead of just the first. Doing this means that caching smaller tries would lead to fewer cache hits if the user wants to retype something.
+  * I want to run some comparison tests for how much memory this uses on the full dataset. I could further split the tries by second or third char, instead of just the first. Doing this means that caching smaller tries would lead to fewer cache hits if the user wants to retype something
+* "compressing" the trie
+  * for every node that doesn't hold any "hits" data, we are wasting space. For tries that have multiple nodes in a row without any hits, we could compress these nodes into a single one.
+  * this could slightly speed up traversal, as searching the trie could "batch" steps by checking against a substring instead of single character
+  * this would also slightly reduce the amount of memory necessary to store the trie, as it would prune any nodes that are not present as a token.
 
 Preprocessing optimizations
 * Process the emails into a logical object structure
