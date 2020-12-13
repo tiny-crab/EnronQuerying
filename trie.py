@@ -4,8 +4,9 @@ import json
 
 class TrieNode:
 
-    def __init__(self, char='', children=None, hits=None):
+    def __init__(self, char='', ladder_string = "", children=None, hits=None):
         self.char = char  # char in word represented by node
+        self.ladder_string = ladder_string # full word represented by traversal through trie
         self.children = children if children is not None else []
         self.hits = hits if hits is not None else []  # file paths for any email that hits on this node
 
@@ -19,7 +20,7 @@ class TrieNode:
         cur_node = self
         for char in key:
             if char not in cur_node.child_chars():
-                new_child = TrieNode(char=char)
+                new_child = TrieNode(char=char, ladder_string=cur_node.ladder_string+char)
                 cur_node.children.append(new_child)
                 cur_node = new_child
             else:
@@ -27,40 +28,50 @@ class TrieNode:
 
         cur_node.hits.append(hit)
 
-    def search(self, key):
+    def find_node(self, key):
         cur_node = self
         for char in key:
             if char not in cur_node.child_chars():
-                return False
-        return cur_node.hits
+                return None
+            else:
+                cur_node = cur_node.child_with_char(char)
+        return cur_node
 
-    def to_dict(self):
+    def traverse(self, process_node=lambda x: x):
         cur_node = self
-        trie_dict = {}
-        dict_key = cur_node.char
+
         traversal_stack = [cur_node]
+        traversed_nodes = [cur_node]
+        processed_nodes = []
+        process_node(cur_node, processed_nodes)
 
         while traversal_stack:
             visited_all_children = True
             if not traversal_stack[-1].children:
                 traversal_stack.pop()
-                dict_key = dict_key[:-1]
             else:
                 cur_node = traversal_stack[-1]
             for child in cur_node.children:
-                potential_key = dict_key + child.char
-                if potential_key not in trie_dict.keys():
+                if child not in traversed_nodes:
                     visited_all_children = False
-                    trie_dict[potential_key] = child
-                    print(f"added {potential_key} to dict")
                     traversal_stack.append(child)
-                    dict_key += child.char
+                    traversed_nodes.append(child)
+                    process_node(child, processed_nodes)
                     break
-            if visited_all_children:
+            if visited_all_children and traversal_stack:
                 traversal_stack.pop()
-                dict_key = dict_key[:-1]
 
-        return trie_dict
+        return processed_nodes
+
+    def to_string(self): return json.dumps({
+        "ladder_string": self.ladder_string,
+        "children": [child.ladder_string for child in self.children],
+        "hits": self.hits
+    })
+
+    def to_dict(self):
+        self.traverse()
+        pass
 
     def from_dict(self):
         pass
