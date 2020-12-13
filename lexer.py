@@ -12,7 +12,11 @@ def splitter(search_dir, out_dir):
             with open(name, 'r') as file:
                 # TODO optimize list -> set -> list conversion
                 # TODO due to keys being based on filepath, this could potentially lead to message ID duplication
-                tokens[name] = list(set(file.read().split()))
+                for token in set(file.read().split()):
+                    if token in tokens.keys():
+                        tokens[token].append(name)
+                    else:
+                        tokens[token] = [name]
 
         if tokens:
             # TODO improve -2 access? it's magic

@@ -1,6 +1,8 @@
 import lexer
+import trie
 import json
 import os
+
 
 def preprocess():
     data_root_dir = "./sample_data/"
@@ -9,9 +11,14 @@ def preprocess():
 
     lexer.splitter(data_root_dir, split_out_dir)
 
-    for item in os.listdir(split_out_dir):
-        tokens_file = os.path.join(item, "tokens.txt")
-        if os.path.isfile(tokens_file):
-            with open(tokens_file, 'r') as file:
-                tokens = json.loads(file.read())
-            print(f"found tokens for {item}")
+    trie_root = trie.trie_create("./split_tokens/sample_data/")
+
+    for child in trie_root.children:
+        ser_trie_dir = os.path.join(trie_out_dir, child.char)
+        print(f"Dumping data into {ser_trie_dir}")
+        if not os.path.exists(ser_trie_dir):
+            os.makedirs(ser_trie_dir)
+        trie_file = os.path.join(ser_trie_dir, "trie.txt")
+        with open(trie_file, 'w') as file:
+            file.write(json.dumps(child.serialize()))
+        print(f"Wrote trie to {trie_file}")

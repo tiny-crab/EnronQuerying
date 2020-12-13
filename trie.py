@@ -4,9 +4,9 @@ import json
 
 class TrieNode:
 
-    def __init__(self, char='', ladder_string = "", children=None, hits=None):
+    def __init__(self, char='', ladder_string="", children=None, hits=None):
         self.char = char  # char in word represented by node
-        self.ladder_string = ladder_string # full word represented by traversal through trie
+        self.ladder_string = ladder_string  # full word represented by traversal through trie
         self.children = children if children is not None else []
         self.hits = hits if hits is not None else []  # file paths for any email that hits on this node
 
@@ -16,17 +16,18 @@ class TrieNode:
     def child_chars(self):
         return map(lambda node: node.char, self.children)
 
-    def insert(self, key, hit):
+    def insert(self, key, hits):
         cur_node = self
         for char in key:
             if char not in cur_node.child_chars():
                 new_child = TrieNode(char=char, ladder_string=cur_node.ladder_string+char)
+                new_child.parent = cur_node
                 cur_node.children.append(new_child)
                 cur_node = new_child
             else:
                 cur_node = cur_node.child_with_char(char)
 
-        cur_node.hits.append(hit)
+        cur_node.hits.extend(hits)
 
     def find_node(self, key):
         cur_node = self
@@ -37,12 +38,14 @@ class TrieNode:
                 cur_node = cur_node.child_with_char(char)
         return cur_node
 
-    def traverse(self, process_node=lambda x: x):
+    def traverse(self,
+                 agg_init=None,
+                 process_node=lambda node, agg: agg.append(node)):
         cur_node = self
 
         traversal_stack = [cur_node]
         traversed_nodes = [cur_node]
-        processed_nodes = []
+        processed_nodes = agg_init if agg_init is not None else []
         process_node(cur_node, processed_nodes)
 
         while traversal_stack:
@@ -63,18 +66,23 @@ class TrieNode:
 
         return processed_nodes
 
-    def to_string(self): return json.dumps({
-        "ladder_string": self.ladder_string,
-        "children": [child.ladder_string for child in self.children],
-        "hits": self.hits
-    })
+    def serialize(self):
+        def agg_on_dict(node, agg):
+            if not node.children and node.ladder_string not in agg.keys():
+                agg[node.ladder_string] = node.hits
 
-    def to_dict(self):
-        self.traverse()
-        pass
+        return self.traverse(
+            agg_init={},
+            process_node=agg_on_dict
+        )
 
-    def from_dict(self):
-        pass
+    @staticmethod
+    def deserialize(trie_dict):
+        root = TrieNode(char='')
+        for key, hits in trie_dict.items():
+            root.insert(key, hits)
+
+        return root
 
 
 def trie_create(tokens_dir):
@@ -83,16 +91,11 @@ def trie_create(tokens_dir):
     for dirpath, dirnames, files in os.walk(tokens_dir):
         print(f'Adding directory to trie: {dirpath}')
         for filename in files:
-            if filename == "tokens.txt":
+            if filename == "trie.txt":
                 name = os.path.join(dirpath, filename)
                 with open(name, 'r') as tokens_file:
-                    tokens_by_email = json.loads(tokens_file.read())
-                    for email, tokens in tokens_by_email.items():
-                        for token in tokens:
-                            trie_root.insert(token, email)
+                    email_by_tokens = json.loads(tokens_file.read())
+                    for token, emails in email_by_tokens.items():
+                        trie_root.insert(token, emails)
 
     return trie_root
-
-
-def trie_encode(root):
-    pass
