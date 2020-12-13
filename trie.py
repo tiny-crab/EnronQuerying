@@ -76,14 +76,6 @@ class TrieNode:
             process_node=agg_on_dict
         )
 
-    @staticmethod
-    def deserialize(trie_dict):
-        root = TrieNode(char='')
-        for key, hits in trie_dict.items():
-            root.insert(key, hits)
-
-        return root
-
 
 def trie_create(tokens_dir):
     trie_root = TrieNode()

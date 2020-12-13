@@ -10,8 +10,7 @@ def splitter(search_dir, out_dir):
         for filename in files:
             name = os.path.join(dirpath, filename)
             with open(name, 'r') as file:
-                # TODO optimize list -> set -> list conversion
-                # TODO due to keys being based on filepath, this could potentially lead to message ID duplication
+                # TODO due to keys being based on filepath, this leads to message ID duplication
                 for token in set(file.read().split()):
                     if token in tokens.keys():
                         tokens[token].append(name)
