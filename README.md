@@ -34,6 +34,7 @@ Client optimizations (highest priority)
 Preprocessing optimizations
 * Process the emails into a logical object structure
   * The preprocessor is tokenizing the full email and disregarding any structure. By parsing out the data into a meaningful structure, we could also do first-pass deduplication of email data. This would drastically cut down on tokenizing and building an initial trie.
+  * A misstep here was to assume that there would be a lot of overlap on tokens for emails across the entire dataset. If I was tokenizing just the "written" portions of the emails, that surely would have been the case. However, since the tokens also include unique IDs, the initial preprocessing has been hanging on the '<' trie, due to the fact that includes EVERY unique identifier across emails.
 * Don't make a trie in the preprocessing step.
   * The initial tokenizing output and trie serialization is exactly the same. While I coded this, I anticipated creating a full trie in preprocessing, splitting and serializing it, and deserializing the smaller tries at runtime. Little did I realize I was already "serializing the trie" by tokenizing and implementing a way to construct a trie from those tokens.
   * I didn't take the time, but it would be simple to adjust the tokenizing output to merge the token maps from email-user and dissect the maps along the first character of each key.
